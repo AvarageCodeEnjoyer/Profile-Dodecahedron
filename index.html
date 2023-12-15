@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive 3D Dodecahedron</title>
+  <script type="text/javascript" src="https://threejs.org/build/three.js"></script>
+</head>
+<body>
+  <script>
+    // Set up scene
+    var scene = new THREE.Scene();
+    
+    // Create camera
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    
+    // Create renderer
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Create dodecahedron geometry
+    var geometry = new THREE.DodecahedronGeometry(5);
+
+    // Create material
+    var material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+
+    // Create dodecahedron mesh
+    var dodecahedron = new THREE.Mesh(geometry, material);
+    scene.add(dodecahedron);
+
+    // Set camera position
+    camera.position.z = 15;
+
+    // Add ambient light
+    var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    // Add directional light
+    var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5).normalize();
+    scene.add(directionalLight);
+
+    // Assign different links to each face
+    var faceLinks = {
+      face0: 'https://link0.com',
+      face1: 'https://link1.com',
+      face2: 'https://link2.com',
+      face3: 'https://link3.com',
+      face4: 'https://link4.com',
+      face5: 'https://link5.com',
+      face6: 'https://link6.com',
+      face7: 'https://link7.com',
+      face8: 'https://link8.com',
+      face9: 'https://link9.com',
+      face10: 'https://link10.com',
+      face11: 'https://link11.com',
+    };
+
+    // Add click event listener
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+    var isMouseDown = false;
+    var clickTimeout;
+
+    document.addEventListener('mousedown', function (event) {
+      isMouseDown = true;
+    });
+
+    document.addEventListener('mouseup', function (event) {
+      clearTimeout(clickTimeout);
+
+      if (isMouseDown) {
+        // Handle the click event here
+        handleMouseClick(event);
+      }
+
+      isMouseDown = false;
+    });
+
+    document.addEventListener('mousemove', function (event) {
+      if (isMouseDown) {
+        // Rotate the dodecahedron manually based on mouse movement
+        dodecahedron.rotation.x += (event.movementY / window.innerHeight) * 10;
+        dodecahedron.rotation.y += (event.movementX / window.innerWidth) * 10;
+      }
+    });
+
+    function handleMouseClick(event) {
+      // Calculate mouse position in normalized device coordinates (-1 to +1)
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+      // Update the picking ray with the camera and mouse position
+      raycaster.setFromCamera(mouse, camera);
+
+      // Calculate objects intersecting the picking ray
+      var intersects = raycaster.intersectObject(dodecahedron);
+
+      if (intersects.length > 0) {
+        // Get the UV coordinates of the clicked point
+        var uv = intersects[0].uv;
+
+        // Calculate the face index based on UV coordinates
+        var faceIndex = Math.floor(uv.x * 4) + Math.floor(uv.y * 2) * 4;
+
+        // Check if the face has an associated link
+        var link = faceLinks['face' + faceIndex];
+
+        if (link) {
+          // Open the link in a new tab
+          window.open(link, '_blank');
+        }
+      }
+    }
+
+    // Add animation
+    var animate = function () {
+      requestAnimationFrame(animate);
+
+      // Only spin the dodecahedron if the mouse is not held down
+      if (!isMouseDown) {
+        // Rotate the dodecahedron
+        dodecahedron.rotation.x += 0.005;
+        dodecahedron.rotation.y += 0.005;
+      }
+
+      renderer.render(scene, camera);
+    };
+
+    // Handle window resize
+    window.addEventListener('resize', function () {
+      var newWidth = window.innerWidth;
+      var newHeight = window.innerHeight;
+
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(newWidth, newHeight);
+    });
+
+    // Start animation
+    animate();
+  </script>
+</body>
+</html>
